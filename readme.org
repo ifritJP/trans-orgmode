@@ -1,0 +1,23 @@
+* What is trasorg
+
+orgmode で書かれた日本語ドキュメントを英語に翻訳します。
+
+* 使用方法
+
+src.org を翻訳する場合。  
+  
+: trasorg -m trans src.org -c accesstoken.json
+
+- accesstoken.json
+
+GCP の translate API へのアクセストークンを記載した JSON ファイルです。
+
+#+BEGIN_SRC json
+{ "token": "GCPTOKEN" }
+#+END_SRC
+
+GCPTOKEN は、以下のコマンドで取得します。
+
+: gcloud auth application-default print-access-token
+
+*※ GCP のアカウントが必要です。*

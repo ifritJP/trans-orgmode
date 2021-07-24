@@ -1,0 +1,318 @@
+import OrgDoc;
+import HttpIF;
+import Util;
+
+let LimitSize = 100 * 1000;
+let LimitTxtNum = 128;
+//let LimitSize = 100;
+
+fn doc2org( doc:&OrgDoc.Document, transCtrl:&OrgDoc.TransCtrl ) {
+   foreach item in doc.GetItemList() {
+      //print( index, item.$Kind, item.$Id );
+      let id = item.$Id;
+      _switch item.$Kind {
+         case .Text {
+            print( OrgDoc.getTxt( doc, id, transCtrl ) );
+         }
+         case .Headline {
+            let headline = doc.GetHeadlineList()[ id ];
+            print( "\n\n%s %s" ( string.rep( "*", headline.$Level ),
+                                   OrgDoc.getTxt( doc,  headline.$TxtId, transCtrl ) ) );
+            if! let customId = headline.$CustomId {
+               print( ```:PROPERTIES:
+:CUSTOM_ID: %s
+:END:
+``` (customId) );
+            }
+         }
+         case .Table {
+            let table = doc.GetTableList()[ id ];
+            let itemNum = #table.$RowList[1].$TxtIdList;
+            print( "|%s-|" (string.rep( "-|", itemNum - 1) ) );
+            foreach tableRow in table.$RowList {
+               if #tableRow.$TxtIdList == 0 {
+                  print( "|%s-|" (string.rep( "-+", itemNum - 1 ) ) );
+               } else {
+                  io.stdout.write( "| " );
+                  foreach textId in tableRow.$TxtIdList {
+                     io.stdout.write( OrgDoc.getTxt( doc,  textId, transCtrl ) );
+                     io.stdout.write( " | " );
+                  }
+                  io.stdout.write( "\n" );
+               }
+            }
+         }
+         case .Verb {
+            let verb = doc.GetVerbList()[ id ];
+            print( OrgDoc.getTxt( doc,  verb.$TxtId, transCtrl ) );
+         }
+         case .Exp {
+         }
+         case .Block, .Name {
+            let block = doc.GetBlockList()[ id ];
+            print( OrgDoc.getTxt( doc,  block.$TxtId, transCtrl ) );
+         }
+         case .List {
+            let list = doc.GetListList()[ id ];
+            print( "%s- %s" ( string.rep( " ", (list.$Level-1) * 2 ),
+                              OrgDoc.getTxt( doc,  list.$TxtId, transCtrl ) ) );
+         }
+         case .Descript {
+            let list = doc.GetDescriptList()[ id ];
+            print( "%s- %s :: %s" ( string.rep( " ", (list.$Level-1) * 2 ),
+                                    OrgDoc.getTxt( doc,  list.$TermId, transCtrl ),
+                                    OrgDoc.getTxt( doc,  list.$TxtId, transCtrl ) ) );
+         }
+         case .Rule {
+            print( "\n-----" );
+         }
+         case .Blank {
+            print( "" );
+         }
+         case .Emphasis {
+            let emphasis = doc.GetExpList()[ id ];
+            let txt = OrgDoc.getTxt( doc, emphasis.$TxtId, transCtrl ).
+               gsub( "^%s+", "").gsub( "%s+$", "" );
+            print( "%s%s%s" ( emphasis.$Delimit, txt, emphasis.$Delimit ) );
+         }
+         case .Keyword {
+            let keyword = doc.GetKeywordList()[ id ];
+            print( "#+%s: %s" (keyword.$Keyword,
+                                OrgDoc.getTxt( doc, keyword.$TxtId, transCtrl ) ) );
+         }
+         case .Comment {
+            let comment = doc.GetCommentList()[ id ];
+            print( "# %s" (OrgDoc.getTxt( doc, comment.$TxtId, transCtrl ) ) );
+         }
+      }
+   }
+}
+
+fn isOnlyAscii( txt:str ) : bool {
+   if txt.find( "[^%g%s]+" ## ) {
+      return false;
+   }
+   return true;
+}
+
+class TransRequest extend (Mapping) {
+   let model:str {pub};
+   let q:List<str> {pub};
+   let format:str {pub};
+   let target:str {pub};
+   let source:str {pub};
+
+   pub fn __init() {
+      self.model = "nmt";
+      self.q = [];
+      self.format = "text";
+      self.target = "en";
+      self.source = "ja";
+   }
+
+   pub fn addTxt( txt:str ) mut : int {
+      self.q.insert( txt );
+      return #self.q;
+   }
+}
+
+class Translation extend (Mapping) {
+   let translatedText: str {pub};
+   let model: str {pub};
+}
+
+class TranslationData extend (Mapping) {
+   let translations:&List<&Translation> {pub};
+}
+
+fn createTransReq( doc:&OrgDoc.Document ) : &List<str>, OrgDoc.TransCtrl {
+
+   let ignoreTxtIdSet:Set<int> = (@);
+   foreach block in doc.GetBlockList() {
+      ignoreTxtIdSet.add( block.$TxtId );
+   }
+   foreach verb in doc.GetVerbList() {
+      ignoreTxtIdSet.add( verb.$TxtId );
+   }
+
+   let mut request = new TransRequest();
+   let mut src2convId:Map<int,int> = {};
+   
+   foreach txt, index in doc.GetTextList() {
+      if not ignoreTxtIdSet.has( index ) and not isOnlyAscii( txt ) {
+         src2convId[ index ] = request.addTxt( (txt.gsub( "\\n", " " )) );
+      }
+   }
+
+   // 翻訳データが多過ぎるとエラーするので、分割する。
+   let reqList:List<str> = [];
+   let mut workReq = new TransRequest();
+   let mut size = 0;
+   let mut count = 0;
+   foreach txt in request.$q {
+      workReq.addTxt( txt );
+      count = count + 1;
+      size = size + #txt;
+      if size > LimitSize or count >= LimitTxtNum {
+         reqList.insert( Util.Json.Obj2Txt( workReq._toMap() ) );
+         size = 0;
+         count = 0;
+         workReq = new TransRequest();
+      }
+   }
+   if #workReq.$q > 0 {
+      reqList.insert( Util.Json.Obj2Txt( workReq._toMap() ) );
+   }
+
+   return reqList, new OrgDoc.TransCtrl( doc.GetTextList(), src2convId );
+}
+
+class Conf extend (Mapping) {
+   let token:str {pub};
+}
+
+fn translate( doc:&OrgDoc.Document, conf:&Conf ): OrgDoc.TransCtrl! {
+   let requestBodyList, mut transCtrl = createTransReq( doc );
+
+   let mut header = {
+      "Authorization": "Bearer " .. conf.$token,
+      "Content-Type": "application/json; charset=utf-8"
+   };
+
+   let mut transList:List<str> = [];
+   foreach requestBody in requestBodyList {
+      let err, resp = HttpIF.HttpClient.Req(
+         "https://translation.googleapis.com/language/translate/v2",
+         "POST", header, requestBody );
+      when! err {
+         print( err );
+         return nil;
+      }
+      when! resp {
+         //print( resp.$httpStatus, resp.$body );
+         if resp.$httpStatus == 200 {
+            let map = Util.Json.Txt2Map( unwrap resp.$body default "" );
+            if! let translation = TranslationData._fromStem( map$.data ) {
+               foreach trans in translation.$translations {
+                  //print( index, trans.$translatedText );
+                  transList.insert( trans.$translatedText );
+               }
+            }
+         } else {
+            print( "httpStatus = %d" (resp.$httpStatus) );
+            print( "body = %s" (resp.$body) );
+            return nil;
+         }
+      } else {
+         print( "resp is nil" );
+         return nil;
+      }
+   }
+
+   transCtrl.set_transTxtList( transList );
+   return transCtrl;
+}
+
+enum Mode {
+   Org = "org",
+   MkReq = "mkreq",
+   Trans = "trans",
+}
+
+pub fn __main( argList:&List<str> ) : int
+{
+   fn printUsage( code:int ) : __ {
+      print( "usage: %s orgfile conffile [-v]" (argList[1]) );
+      os.exit( code );
+   }
+   
+   if #argList == 1 {
+      print( "usage: %s orgfile conffile [-v]" (argList[1]) );
+      return 1;
+   }
+
+
+   let mut argIndex = 1;
+   fn getNextOp():str! {
+      if #argList <= argIndex {
+         return nil;
+      }
+      argIndex = argIndex + 1;
+      return argList[ argIndex ];
+   }
+   fn getNextOpNonNil():str {
+      if! let nextOp = getNextOp() {
+         return nextOp;
+      }
+      printUsage( 1 );
+   }
+
+   let mut path = "";
+   let mut conf:Conf! = nil;
+   let mut enableLog = false;
+   let mut mode:Mode = .Org;
+   
+   while true {
+      let! arg = getNextOp() {
+         break;
+      };
+      if arg.find( "^-" ## ) {
+         switch arg {
+            case "-c" {
+               let confPath = getNextOpNonNil();
+               let! confTxt = Util.readFile( confPath ) {
+                  print( "failed to open -- ", confPath );
+                  printUsage( 1 );
+               };
+               if! Conf._fromStem( Util.Json.Txt2Map( confTxt ) ) {
+                  conf = _exp;
+               } else {
+                  print( "load error" );
+                  printUsage( 1 );
+               }
+            }
+            case "-v" {
+               enableLog = true;
+            }
+            case "-m" {
+               let nextOp = getNextOpNonNil();
+               if! Mode._from( nextOp ) {
+                  mode = _exp;
+               } else {
+                  print( "illegal mode -- %s" (nextOp) );
+                  printUsage( 1 );
+               }
+            }
+         }
+      } else {
+         path = arg;
+      }
+   }
+
+   let doc = OrgDoc.Writer.loadOrg( path, enableLog );
+   switch mode {
+      case .Org {
+         doc2org( doc, new OrgDoc.TransCtrl( doc.GetTextList(), {} ) );
+      }
+      case .MkReq {
+         let requestBodyList, _ = createTransReq( doc );
+         foreach requestBody in requestBodyList {
+            print( requestBody );
+         }
+      }
+      case .Trans {
+         when! conf {
+            if! let transCtrl = translate( doc, conf ) {
+               doc2org( doc, transCtrl );
+            } else {
+               printUsage( 1 );
+            }
+         } else {
+            print( "no conf" );
+            printUsage(1);
+         }
+      }
+   }
+   
+   return 0;
+}

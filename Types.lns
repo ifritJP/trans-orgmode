@@ -1,0 +1,35 @@
+pub interface InStream {
+   pub fn read(size:int) mut : str!,str;
+   pub fn readAll() mut :str!,str;
+}
+
+pub interface OutStream {
+   pub fn write(bin:str) mut : str;
+}
+
+pub class LuaInStream extend (InStream) {
+   let mut stream:iStream;
+   fn readStream( mode:stem ) mut : str!,str {
+      if! let bin = self.stream.read( mode ) {
+         return bin, "";
+      }
+      return nil, "err";
+   }
+   pub fn read(size:int) mut :str!,str {
+      return self.readStream( size )**;
+   }
+   pub fn readAll() mut :str!,str {
+      return self.readStream( "*a" )**;
+   }
+}
+
+pub class LuaOutStream extend (OutStream) {
+   let mut stream:oStream;
+   pub fn write(bin:str) mut : str {
+      let _, err = self.stream.write( bin );
+      when! err {
+         return err;
+      }
+      return "";
+   }
+}

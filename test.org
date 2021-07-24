@@ -1,0 +1,81 @@
+#+TITLE: org-mode ドキュメントの翻訳ツール検討
+#+DATE: 2021-07-19
+# -*- coding:utf-8 -*-
+#+OPTIONS: ^:{}
+#+STARTUP: nofold
+
+私は =org-mode= を使って LuneScript のリファレンスを作成しています。
+
+-----
+* *トランスコンパイラ LuneScript で Lua の開発をもっと楽に!!*
+# -*- coding:utf-8 -*-
+#+STARTUP: nofold
+#+OPTIONS: ^:{}
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="org-mode-document.css" />
+
+**TypeScriptからLuaに変換する TypeScriptToLua があります。* 
+
+
+* hoge
+
+** hogehoge
+:PROPERTIES:
+:CUSTOM_ID: tutorial2_setup
+:END:
+
+|  a |  b |
+|----+----|
+| 10 | 20 |
+
+: hoge
+
+#+BEGIN_SRC lns
+let val = 1;
+#+END_SRC
+
+- 値編
+  - [[value]]
+- enum 編
+  - [[enum]]
+
+
+age
+sage
+
+foo
+
+bar
+
+
+- =/usr/local/share/lua/5.3/?.lua=
+- =/usr/local/share/lua/5.3/?/init.lua=
+
+
+~aaa~
+
+- lua5.1.4 :: 1.71sec
+- Gopherlua :: 5.40sec
+
+#+NAME: Test.lns
+#+BEGIN_SRC lns
+// @lnsFront: ok
+// Test.lns
+fn func(): str, str {
+   return __mod__, __func__;
+}
+#+END_SRC
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

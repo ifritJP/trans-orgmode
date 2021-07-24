@@ -1,0 +1,9 @@
+pub class Response {
+   let httpStatus:int {pub};
+   let header:&Map<str,str> {pub};
+   let body:str! {pub};
+}
+
+pub module HttpClient require "HttpClient" of "" {
+   pub static fn Req( url:str, method:str, headerMap:&Map<str,str>, body:str) : str!, &Response!;
+}

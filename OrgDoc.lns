@@ -1,0 +1,139 @@
+pub enum ItemKind {
+   Text,
+   // * headline
+   Headline,
+   // | テーブル
+   Table,
+   // :
+   Verb,
+   // =
+   Exp,
+   // ブロック
+   Block,
+   // リスト
+   List,
+   Rule,
+   Blank,
+   Name,
+   Descript,
+   Emphasis,
+   Keyword,
+   Comment,
+}
+
+pub interface Item {
+   pub fn get_Kind():ItemKind;
+   pub fn get_Id():int;
+}
+
+pub interface Headline {
+   pub fn get_Level():int;
+   pub fn get_TxtId():int;
+   pub fn get_CustomId():str!;
+}
+
+pub interface TableRow {
+   pub fn get_TxtIdList():List<int>;
+}
+
+pub interface Table {
+   pub fn get_RowList():List<TableRow>;
+}
+
+pub interface Verb {
+   pub fn get_TxtId():int;
+}
+
+pub interface Exp {
+   pub fn get_Delimit():str;
+   pub fn get_TxtId():int;
+}
+
+pub interface Block {
+   pub fn get_TxtId():int;
+}
+
+pub interface ListItem {
+   pub fn get_Level():int;
+   pub fn get_TxtId():int;
+}
+
+pub interface Descript {
+   pub fn get_Level():int;
+   pub fn get_TermId():int;
+   pub fn get_TxtId():int;
+}
+
+pub interface Keyword {
+   pub fn get_Keyword():str;
+   pub fn get_TxtId():int;
+}
+
+pub interface Comment {
+   pub fn get_TxtId():int;
+}
+
+pub interface Document {
+   pub fn GetItemList() :&List<&Item>;
+   pub fn GetTextList() :&List<str>;
+   pub fn GetHeadlineList() :&List<&Headline>;
+   pub fn GetTableList() :&List<&Table>;
+   pub fn GetVerbList() :&List<&Verb>;
+   pub fn GetExpList() :&List<&Exp>;
+   pub fn GetBlockList() :&List<&Block>;
+   pub fn GetListList() :&List<&ListItem>;
+   pub fn GetDescriptList() :&List<&Descript>;
+   pub fn GetKeywordList() :&List<&Keyword>;
+   pub fn GetCommentList() :&List<&Comment>;
+}
+
+pub module Writer require "writer" of "" {
+   pub static fn loadOrg(path:str, enableLog:bool ):Document;
+}
+
+pub class TransCtrl {
+   // 翻訳前の文字列リストの index -> 翻訳後の文字列リストの index
+   let src2TransIdMap:&Map<int,int>;
+   // 翻訳前の文字列リスト
+   let srcTxtList:&List<str> {non};
+   // 翻訳後の文字列リスト
+   let mut transTxtList:List<str> {non,pub};
+
+   pub fn __init( srcTxtList:&List<str>, src2TransIdMap:&Map<int,int> ) {
+      self.src2TransIdMap = src2TransIdMap;
+      self.srcTxtList = srcTxtList;
+      self.transTxtList = [];
+   }
+   
+   // 翻訳後の文字列を取得する
+   pub fn get( index:int ) : str {
+      if! let transId = self.src2TransIdMap[ index ] {
+         return self.transTxtList[ transId ];
+      }
+      return self.srcTxtList[ index ];
+   }
+}
+
+pub fn getTxt( doc:&Document, id:int, transCtl:&TransCtrl ) : str {
+   //let txtList = doc.GetTextList();
+   let src = transCtl.get(id);
+   let mut txt = "";
+   let mut startIndex = 1;
+   while true {
+      let! index = src.find( "SyM_%d", startIndex## ) {
+         txt = txt .. src.sub( startIndex## );
+         break;
+      };
+      let! pos, endPos = src.find( "_%d+", index ## ) {
+         error( "not found _%d+" );
+      };
+      let! expId = tonumber( src.sub( pos + 1, endPos )## ) {
+         error( "illegal num -- " .. src.sub( pos + 1, endPos ) );
+      };
+      let exp = doc.GetExpList()[ expId@@int ];
+      txt = "%s%s%s%s%s" ( txt, src.sub( startIndex, index - 1 ),
+                           exp.$Delimit, transCtl.get( exp.$TxtId ), exp.$Delimit );
+      startIndex = endPos + 1;
+   }
+   return (txt.gsub("\\n", ""));
+}

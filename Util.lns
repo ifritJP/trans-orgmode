@@ -1,0 +1,15 @@
+import Types;
+
+pub module Json require "jsonBind" of "" {
+   pub static fn ReadMap( inStream:Types.InStream ) : Map<str,stem>!;
+   pub static fn Txt2Map(txt:str) : Map<str,stem>!;
+   pub static fn WriteObj( outStream:Types.OutStream, jsonMap:&Map<str,&stem>);
+   pub static fn Obj2Txt(jsonMap:&Map<str,&stem>): str;
+}
+
+pub fn readFile( path:str ) : str! {
+   let! mut fileObj = io.open( path## ) {
+      return nil;
+   };
+   return fileObj.read( "*a" );
+}

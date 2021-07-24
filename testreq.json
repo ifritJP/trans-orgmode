@@ -1,0 +1,6 @@
+{
+    "model": "nmt",
+    "q": ["Hello world", "My name is Jeff"],
+    "format": "text",
+    "target": "ja"
+}
