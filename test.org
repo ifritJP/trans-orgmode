@@ -15,10 +15,11 @@
 
 **TypeScriptからLuaに変換する TypeScriptToLua があります。* 
 
+[[#tutorial2_setup]]
 
 * hoge
 
-** hogehoge
+** hogehoge hoge age
 :PROPERTIES:
 :CUSTOM_ID: tutorial2_setup
 :END:

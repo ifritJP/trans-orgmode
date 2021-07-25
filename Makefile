@@ -14,6 +14,7 @@ build:
 test: build
 	./trasorg test.org -c ../trans-org-accesstoken.json -v
 	./trasorg -m mkreq test.org -c ../trans-org-accesstoken.json
+	./trasorg -m github test.org -c ../trans-org-accesstoken.json
 #	./trasorg -m trans test.org -c ../trans-org-accesstoken.json
 
 test-all: build

@@ -5,6 +5,7 @@ var init_main bool
 var main__mod__ string
 // decl enum -- Mode 
 type main_Mode = string
+const main_Mode__Github = "github"
 const main_Mode__MkReq = "mkreq"
 const main_Mode__Org = "org"
 const main_Mode__Trans = "trans"
@@ -12,11 +13,13 @@ var main_ModeList_ = NewLnsList( []LnsAny {
   main_Mode__Org,
   main_Mode__MkReq,
   main_Mode__Trans,
+  main_Mode__Github,
 })
 func main_Mode_get__allList_2_(_env *LnsEnv) *LnsList{
     return main_ModeList_
 }
 var main_ModeMap_ = map[string]string {
+  main_Mode__Github: "Mode.Github",
   main_Mode__MkReq: "Mode.MkReq",
   main_Mode__Org: "Mode.Org",
   main_Mode__Trans: "Mode.Trans",
@@ -32,27 +35,59 @@ func main_Mode_getTxt(arg1 string) string {
 var main_LimitSize LnsInt
 var main_LimitTxtNum LnsInt
 // for 195
-func main_convExp0_1252(arg1 []LnsAny) LnsAny {
+func main_convExp0_1266(arg1 []LnsAny) LnsAny {
     return Lns_getFromMulti( arg1, 0 )
 }
-// for 267
-func main_convExp0_1581(arg1 []LnsAny) LnsAny {
+// for 308
+func main_convExp0_1906(arg1 []LnsAny) LnsAny {
     return Lns_getFromMulti( arg1, 0 )
+}
+// for 223
+func main_convExp0_1406(arg1 []LnsAny) string {
+    return Lns_getFromMulti( arg1, 0 ).(string)
+}
+// for 224
+func main_convExp0_1438(arg1 []LnsAny) string {
+    return Lns_getFromMulti( arg1, 0 ).(string)
+}
+// for 243
+func main_convExp0_1592(arg1 []LnsAny) string {
+    return Lns_getFromMulti( arg1, 0 ).(string)
+}
+// for 244
+func main_convExp0_1608(arg1 []LnsAny) string {
+    return Lns_getFromMulti( arg1, 0 ).(string)
 }
 // for 74
-func main_convExp0_697(arg1 []LnsAny) string {
+func main_convExp0_711(arg1 []LnsAny) string {
     return Lns_getFromMulti( arg1, 0 ).(string)
 }
 // for 175
-func main_convExp0_1131(arg1 []LnsAny) (*LnsList, *OrgDoc_TransCtrl) {
+func main_convExp0_1145(arg1 []LnsAny) (*LnsList, *OrgDoc_TransCtrl) {
     return Lns_getFromMulti( arg1, 0 ).(*LnsList), Lns_getFromMulti( arg1, 1 ).(*OrgDoc_TransCtrl)
 }
 // for 184
-func main_convExp0_1179(arg1 []LnsAny) (LnsAny, LnsAny) {
+func main_convExp0_1193(arg1 []LnsAny) (LnsAny, LnsAny) {
     return Lns_getFromMulti( arg1, 0 ), Lns_getFromMulti( arg1, 1 )
 }
-// for 298
-func main_convExp0_1711(arg1 []LnsAny) (*LnsList, *OrgDoc_TransCtrl) {
+// for 217
+func main_convExp0_1365(arg1 []LnsAny) LnsAny {
+    return Lns_getFromMulti( arg1, 0 )
+}
+// for 233
+func main_convExp0_1495(arg1 []LnsAny) string {
+    return Lns_getFromMulti( arg1, 0 ).(string)
+}
+// for 236
+func main_convExp0_1531(arg1 []LnsAny) string {
+    return Lns_getFromMulti( arg1, 0 ).(string)
+}
+// for 242
+func main_convExp0_1577(arg1 []LnsAny) string {
+    return Lns_getFromMulti( arg1, 0 ).(string)
+}
+// for 339
+func main_convExp0_2036(arg1 []LnsAny) (*LnsList, *OrgDoc_TransCtrl) {
     return Lns_getFromMulti( arg1, 0 ).(*LnsList), Lns_getFromMulti( arg1, 1 ).(*OrgDoc_TransCtrl)
 }
 // 9: decl @main.doc2org
@@ -119,7 +154,7 @@ func main_doc2org_0_(_env *LnsEnv, doc OrgDoc_Document,transCtrl *OrgDoc_TransCt
             var emphasis OrgDoc_Exp
             emphasis = doc.GetExpList(_env).GetAt(id).(OrgDoc_Exp)
             var txt string
-            txt = main_convExp0_697(Lns_2DDD(_env.GetVM().String_gsub(Lns_car(_env.GetVM().String_gsub(OrgDoc_getTxt(_env, doc, emphasis.Get_TxtId(_env), transCtrl),"^%s+", "")).(string),"%s+$", "")))
+            txt = main_convExp0_711(Lns_2DDD(_env.GetVM().String_gsub(Lns_car(_env.GetVM().String_gsub(OrgDoc_getTxt(_env, doc, emphasis.Get_TxtId(_env), transCtrl),"^%s+", "")).(string),"%s+$", "")))
             Lns_print([]LnsAny{_env.GetVM().String_format("%s%s%s", []LnsAny{emphasis.Get_Delimit(_env), txt, emphasis.Get_Delimit(_env)})})
         } else if _switch0 == OrgDoc_ItemKind__Keyword {
             var keyword OrgDoc_Keyword
@@ -209,17 +244,17 @@ func main_translate_7_(_env *LnsEnv, doc OrgDoc_Document,conf *main_Conf) LnsAny
         var resp LnsAny
         err,resp = Req(_env, "https://translation.googleapis.com/language/translate/v2", "POST", header, requestBody)
         if err != nil{
-            err_146 := err.(string)
-            Lns_print([]LnsAny{err_146})
+            err_151 := err.(string)
+            Lns_print([]LnsAny{err_151})
             return nil
         }
         if resp != nil{
-            resp_148 := resp.(*HttpIF_Response)
-            if resp_148.FP.Get_httpStatus(_env) == 200{
+            resp_153 := resp.(*HttpIF_Response)
+            if resp_153.FP.Get_httpStatus(_env) == 200{
                 var _map LnsAny
-                _map = Txt2Map(_env, Lns_unwrapDefault( resp_148.FP.Get_body(_env), "").(string))
+                _map = Txt2Map(_env, Lns_unwrapDefault( resp_153.FP.Get_body(_env), "").(string))
                 {
-                    _translation := main_convExp0_1252(Lns_2DDD(main_TranslationData__fromStem_4_(_env, _env.NilAccFin( _env.NilAccPush(
+                    _translation := main_convExp0_1266(Lns_2DDD(main_TranslationData__fromStem_4_(_env, _env.NilAccFin( _env.NilAccPush(
                     _map) && 
                     _env.NilAccPush( _env.NilAccPop().(*LnsMap).Get("data"))),nil)))
                     if !Lns_IsNil( _translation ) {
@@ -231,8 +266,8 @@ func main_translate_7_(_env *LnsEnv, doc OrgDoc_Document,conf *main_Conf) LnsAny
                     }
                 }
             } else { 
-                Lns_print([]LnsAny{_env.GetVM().String_format("httpStatus = %d", []LnsAny{resp_148.FP.Get_httpStatus(_env)})})
-                Lns_print([]LnsAny{_env.GetVM().String_format("body = %s", []LnsAny{resp_148.FP.Get_body(_env)})})
+                Lns_print([]LnsAny{_env.GetVM().String_format("httpStatus = %d", []LnsAny{resp_153.FP.Get_httpStatus(_env)})})
+                Lns_print([]LnsAny{_env.GetVM().String_format("body = %s", []LnsAny{resp_153.FP.Get_body(_env)})})
                 return nil
             }
         } else {
@@ -244,7 +279,69 @@ func main_translate_7_(_env *LnsEnv, doc OrgDoc_Document,conf *main_Conf) LnsAny
     return transCtrl
 }
 
-// 222: decl @main.__main
+// 216: decl @main.org2github
+func main_org2github_8_(_env *LnsEnv, doc OrgDoc_Document,path string) LnsAny {
+    var fileObj Lns_luaStream
+    
+    {
+        _fileObj := main_convExp0_1365(Lns_2DDD(Lns_io_open(path, nil)))
+        if _fileObj == nil{
+            return _env.GetVM().String_format("failed to open -- %s", []LnsAny{path})
+        } else {
+            fileObj = _fileObj.(Lns_luaStream)
+        }
+    }
+    var customId2headline *LnsMap
+    customId2headline = NewLnsMap( map[LnsAny]LnsAny{})
+    for _, _headline := range( doc.GetHeadlineList(_env).Items ) {
+        headline := _headline.(OrgDoc_Headline)
+        var txt string
+        txt = doc.GetTextList(_env).GetAt(headline.Get_TxtId(_env)).(string)
+        txt = main_convExp0_1406(Lns_2DDD(_env.GetVM().String_gsub(txt,"^%*(.*)%*$", "%1")))
+        txt = main_convExp0_1438(Lns_2DDD(_env.GetVM().String_gsub(Lns_car(_env.GetVM().String_gsub(Lns_car(_env.GetVM().String_gsub(txt,"^%s+(.*)%s+$", "%1")).(string),"[^%w%s]", "")).(string),"%s", "-")))
+        customId2headline.Set(headline.Get_CustomId(_env),_env.GetVM().String_lower(txt))
+    }
+    for  {
+        var line string
+        
+        {
+            _line := fileObj.Read(_env, "*l")
+            if _line == nil{
+                break
+            } else {
+                line = _line.(string)
+            }
+        }
+        if Lns_isCondTrue( Lns_car(_env.GetVM().String_find(line,"[[#", 1, true))){
+            var customId string
+            customId = main_convExp0_1495(Lns_2DDD(_env.GetVM().String_gsub(line,".*%[%[#(%g+)%]%].*", "%1")))
+            {
+                _headline := customId2headline.Get(customId)
+                if !Lns_IsNil( _headline ) {
+                    headline := _headline.(string)
+                    var pattern string
+                    pattern = _env.GetVM().String_format("%%[%%[#%s%%]%%]", []LnsAny{customId})
+                    var link string
+                    link = main_convExp0_1531(Lns_2DDD(_env.GetVM().String_gsub(line,pattern, _env.GetVM().String_format("[[#%s]]", []LnsAny{headline}))))
+                    Lns_print([]LnsAny{link})
+                } else {
+                    Lns_print([]LnsAny{line})
+                }
+            }
+        } else if Lns_isCondTrue( Lns_car(_env.GetVM().String_find(line,"^[%*]+ ", nil, nil))){
+            var txt string
+            txt = main_convExp0_1577(Lns_2DDD(_env.GetVM().String_gsub(line,"^[%*]+ ", "")))
+            txt = main_convExp0_1592(Lns_2DDD(_env.GetVM().String_gsub(txt,"^%*(.*)%*$", "%1")))
+            txt = main_convExp0_1608(Lns_2DDD(_env.GetVM().String_gsub(txt,"^%s+(.*)%s+$", "%1")))
+            Lns_print([]LnsAny{Lns_car(_env.GetVM().String_gsub(line,"^([%*]+ ).*", "%1")).(string) + txt})
+        } else { 
+            Lns_print([]LnsAny{line})
+        }
+    }
+    return nil
+}
+
+// 263: decl @main.__main
 func Main___main(_env *LnsEnv, argList *LnsList) LnsInt {
     Lns_main_init( _env )
     var printUsage func(_env *LnsEnv, code LnsInt)
@@ -314,7 +411,7 @@ func Main___main(_env *LnsEnv, argList *LnsList) LnsInt {
                     }
                 }
                 {
-                    __exp := main_convExp0_1581(Lns_2DDD(main_Conf__fromStem_4_(_env, Txt2Map(_env, confTxt),nil)))
+                    __exp := main_convExp0_1906(Lns_2DDD(main_Conf__fromStem_4_(_env, Txt2Map(_env, confTxt),nil)))
                     if !Lns_IsNil( __exp ) {
                         _exp := __exp.(*main_Conf)
                         conf = _exp
@@ -356,9 +453,9 @@ func Main___main(_env *LnsEnv, argList *LnsList) LnsInt {
         }
     } else if _switch1 == main_Mode__Trans {
         if conf != nil{
-            conf_206 := conf.(*main_Conf)
+            conf_233 := conf.(*main_Conf)
             {
-                _transCtrl := main_translate_7_(_env, doc, conf_206)
+                _transCtrl := main_translate_7_(_env, doc, conf_233)
                 if !Lns_IsNil( _transCtrl ) {
                     transCtrl := _transCtrl.(*OrgDoc_TransCtrl)
                     main_doc2org_0_(_env, doc, transCtrl)
@@ -370,6 +467,8 @@ func Main___main(_env *LnsEnv, argList *LnsList) LnsInt {
             Lns_print([]LnsAny{"no conf"})
             printUsage(_env, 1)
         }
+    } else if _switch1 == main_Mode__Github {
+        main_org2github_8_(_env, doc, path)
     }
     return 0
 }

@@ -213,10 +213,51 @@ fn translate( doc:&OrgDoc.Document, conf:&Conf ): OrgDoc.TransCtrl! {
    return transCtrl;
 }
 
+fn org2github( doc:&OrgDoc.Document, path:str ) : str! {
+   let! mut fileObj = io.open( path ## ) {
+      return "failed to open -- %s" (path);
+   };
+   let mut customId2headline:Map<str,str> = {};
+   foreach headline in doc.GetHeadlineList() {
+      let mut txt = doc.GetTextList()[ headline.$TxtId ];
+      txt = txt.gsub( "^%*(.*)%*$", "%1" );
+      txt = txt.gsub( "^%s+(.*)%s+$", "%1" ).gsub( "[^%w%s%-]", "" ).gsub( "%s", "-" );
+      customId2headline[ headline.$CustomId ] = txt.lower();
+   }
+
+   while true {
+      let! line = fileObj.read( "*l" ) {
+         break;
+      };
+      if line.find( "[[#", 1, true ) {
+         let customId = line.gsub( ".*%[%[#(%g+)%]%].*", "%1" );
+         if! let headline = customId2headline[ customId ] {
+            let pattern = "%%[%%[#%s%%]%%]" (customId);
+            let link = line.gsub( pattern, "[[#%s]]" (headline));
+            print( link );
+         } else {
+            print( line );
+         }
+      } elseif line.find( "^[%*]+ "## ) {
+         let mut txt = line.gsub( "^[%*]+ ", "" );
+         txt = txt.gsub( "^%*(.*)%*$", "%1" );
+         txt = txt.gsub( "^%s+(.*)%s+$", "%1" );
+         print( line.gsub( "^([%*]+ ).*", "%1" ) .. txt );
+      }
+
+      else {
+         print( line );
+      }
+   }
+   
+   return nil;
+}
+
 enum Mode {
    Org = "org",
    MkReq = "mkreq",
    Trans = "trans",
+   Github = "github",
 }
 
 pub fn __main( argList:&List<str> ) : int
@@ -311,6 +352,9 @@ pub fn __main( argList:&List<str> ) : int
             print( "no conf" );
             printUsage(1);
          }
+      }
+      case .Github {
+         org2github(doc,path);
       }
    }
    
