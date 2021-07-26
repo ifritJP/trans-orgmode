@@ -298,7 +298,7 @@ func main_org2github_8_(_env *LnsEnv, doc OrgDoc_Document,path string) LnsAny {
         var txt string
         txt = doc.GetTextList(_env).GetAt(headline.Get_TxtId(_env)).(string)
         txt = main_convExp0_1406(Lns_2DDD(_env.GetVM().String_gsub(txt,"^%*(.*)%*$", "%1")))
-        txt = main_convExp0_1438(Lns_2DDD(_env.GetVM().String_gsub(Lns_car(_env.GetVM().String_gsub(Lns_car(_env.GetVM().String_gsub(txt,"^%s+(.*)%s+$", "%1")).(string),"[^%w%s]", "")).(string),"%s", "-")))
+        txt = main_convExp0_1438(Lns_2DDD(_env.GetVM().String_gsub(Lns_car(_env.GetVM().String_gsub(Lns_car(_env.GetVM().String_gsub(txt,"^%s+(.*)%s+$", "%1")).(string),"[^%w%s%-]", "")).(string),"%s", "-")))
         customId2headline.Set(headline.Get_CustomId(_env),_env.GetVM().String_lower(txt))
     }
     for  {

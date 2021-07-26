@@ -12,15 +12,15 @@ build:
 	$(LNSC) main.lns mkmain entry.go
 	go build
 test: build
-	./trasorg test.org -c ../trans-org-accesstoken.json -v
-	./trasorg -m mkreq test.org -c ../trans-org-accesstoken.json
-	./trasorg -m github test.org -c ../trans-org-accesstoken.json
-#	./trasorg -m trans test.org -c ../trans-org-accesstoken.json
+	./trans-orgmode test.org -c ../trans-org-accesstoken.json -v
+	./trans-orgmode -m mkreq test.org -c ../trans-org-accesstoken.json
+	./trans-orgmode -m github test.org -c ../trans-org-accesstoken.json
+#	./trans-orgmode -m trans test.org -c ../trans-org-accesstoken.json
 
 test-all: build
-	./trasorg ../ifritJP.github.io/hugo/content/LuneScript/all.org \
+	./trans-orgmode ../ifritJP.github.io/hugo/content/LuneScript/all.org \
 			-c ../trans-org-accesstoken.json > dump
-	./trasorg -m mkreq ../ifritJP.github.io/hugo/content/LuneScript/all.org \
+	./trans-orgmode -m mkreq ../ifritJP.github.io/hugo/content/LuneScript/all.org \
 			-c ../trans-org-accesstoken.json > req.json
 
 

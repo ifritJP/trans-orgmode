@@ -1,4 +1,4 @@
-module trasorg
+module github.com/ifritJP/trans-orgmode
 
 go 1.16
 
