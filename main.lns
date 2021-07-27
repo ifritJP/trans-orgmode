@@ -263,13 +263,12 @@ enum Mode {
 pub fn __main( argList:&List<str> ) : int
 {
    fn printUsage( code:int ) : __ {
-      print( "usage: %s orgfile conffile [-v]" (argList[1]) );
+      print( "usage: %s [-v] [-m mode] [-c conffile] orgfile" (argList[1]) );
       os.exit( code );
    }
    
    if #argList == 1 {
-      print( "usage: %s orgfile conffile [-v]" (argList[1]) );
-      return 1;
+      printUsage( 1 );
    }
 
 

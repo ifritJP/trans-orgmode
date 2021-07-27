@@ -38,8 +38,8 @@ var main_LimitTxtNum LnsInt
 func main_convExp0_1266(arg1 []LnsAny) LnsAny {
     return Lns_getFromMulti( arg1, 0 )
 }
-// for 308
-func main_convExp0_1906(arg1 []LnsAny) LnsAny {
+// for 307
+func main_convExp0_1890(arg1 []LnsAny) LnsAny {
     return Lns_getFromMulti( arg1, 0 )
 }
 // for 223
@@ -86,8 +86,8 @@ func main_convExp0_1531(arg1 []LnsAny) string {
 func main_convExp0_1577(arg1 []LnsAny) string {
     return Lns_getFromMulti( arg1, 0 ).(string)
 }
-// for 339
-func main_convExp0_2036(arg1 []LnsAny) (*LnsList, *OrgDoc_TransCtrl) {
+// for 338
+func main_convExp0_2020(arg1 []LnsAny) (*LnsList, *OrgDoc_TransCtrl) {
     return Lns_getFromMulti( arg1, 0 ).(*LnsList), Lns_getFromMulti( arg1, 1 ).(*OrgDoc_TransCtrl)
 }
 // 9: decl @main.doc2org
@@ -346,12 +346,11 @@ func Main___main(_env *LnsEnv, argList *LnsList) LnsInt {
     Lns_main_init( _env )
     var printUsage func(_env *LnsEnv, code LnsInt)
     printUsage = func(_env *LnsEnv, code LnsInt) {
-        Lns_print([]LnsAny{_env.GetVM().String_format("usage: %s orgfile conffile [-v]", []LnsAny{argList.GetAt(1).(string)})})
+        Lns_print([]LnsAny{_env.GetVM().String_format("usage: %s [-v] [-m mode] [-c conffile] orgfile", []LnsAny{argList.GetAt(1).(string)})})
         _env.GetVM().OS_exit(code)
     }
     if argList.Len() == 1{
-        Lns_print([]LnsAny{_env.GetVM().String_format("usage: %s orgfile conffile [-v]", []LnsAny{argList.GetAt(1).(string)})})
-        return 1
+        printUsage(_env, 1)
     }
     var argIndex LnsInt
     argIndex = 1
@@ -411,7 +410,7 @@ func Main___main(_env *LnsEnv, argList *LnsList) LnsInt {
                     }
                 }
                 {
-                    __exp := main_convExp0_1906(Lns_2DDD(main_Conf__fromStem_4_(_env, Txt2Map(_env, confTxt),nil)))
+                    __exp := main_convExp0_1890(Lns_2DDD(main_Conf__fromStem_4_(_env, Txt2Map(_env, confTxt),nil)))
                     if !Lns_IsNil( __exp ) {
                         _exp := __exp.(*main_Conf)
                         conf = _exp
